@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safety 360 — 1 ступень контроля</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%231e293b'/><path d='M50 20 L75 30 V50 C75 65 65 75 50 80 C35 75 25 65 25 50 V30 Z' fill='%233b82f6'/><path d='M40 50 L47 57 L62 42' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<style>
+:root{--bg-body:#f4f7f9;--bg-sidebar:#1e293b;--bg-sidebar-hover:#334155;--text-sidebar:#e2e8f0;--text-sidebar-muted:#94a3b8;--accent:#3b82f6;--accent-light:#dbeafe;--danger:#ef4444;--warning:#f59e0b;--success:#10b981;--card-bg:#ffffff;--text-main:#1e293b;--text-muted:#64748b;--border:#e2e8f0;--sidebar-width:290px;--header-height:70px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow:hidden;overscroll-behavior-y:none;}
+body{font-family:'Inter',sans-serif;background:var(--bg-body);color:var(--text-main);display:flex;height:100dvh;width:100vw}
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);display:flex;align-items:center;justify-content:center;z-index:5000;padding:20px;overflow-y:auto}
+.login-card{background:white;border-radius:20px;padding:40px 36px;width:100%;max-width:460px;box-shadow:0 30px 60px rgba(0,0,0,.5);animation:modalIn .3s ease;margin:auto}
+.login-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px}
+.login-logo i{font-size:32px;color:var(--accent)}
+.login-logo span{font-family:'Manrope',sans-serif;font-weight:800;font-size:26px;letter-spacing:.5px;color:var(--text-main)}
+.login-sub{text-align:center;font-size:13px;color:var(--text-muted);margin-bottom:30px}
+.login-card .form-group{margin-bottom:18px}
+.login-card .form-label{font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:block}
+.login-card .form-input,.login-card .form-select{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;transition:.2s}
+.login-card .form-input:focus,.login-card .form-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-light)}
+.login-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s;margin-top:8px}
+.login-btn:hover{background:#2563eb}
+.login-error{background:#fee2e2;color:#991b1b;padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:18px;display:none;align-items:center;gap:8px}
+.login-error.show{display:flex}
+.login-tabs{display:flex;gap:8px;margin-bottom:20px;background:#f1f5f9;padding:4px;border-radius:10px}
+.login-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--text-muted);border-radius:8px;cursor:pointer;transition:.2s}
+.login-tab.active{background:white;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+#appShell{display:flex;width:100%;height:100dvh;overflow:hidden;position:relative}
+.sidebar{width:var(--sidebar-width);background:var(--bg-sidebar);color:var(--text-sidebar);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:transform 0.3s ease, margin-left 0.3s ease;z-index:1000}
+.sidebar.collapsed{margin-left:calc(-1 * var(--sidebar-width))}
+.logo-area{padding:24px 28px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.logo-icon{font-size:26px;color:var(--accent)}
+.logo-text{font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;letter-spacing:.5px}
+.nav-section{padding:20px 20px 8px;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-sidebar-muted);font-weight:600}
+.nav-menu{list-style:none;padding:0 12px}
+.nav-item{margin-bottom:4px}
+.nav-link{display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--text-sidebar);text-decoration:none;border-radius:10px;font-size:14px;transition:background .2s;cursor:pointer;line-height:1.3}
+.nav-link:hover{background:var(--bg-sidebar-hover)}
+.nav-link.active{background:var(--accent);color:white;box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+.nav-link i{width:20px;text-align:center;font-size:16px;flex-shrink:0}
+.nav-link span{flex:1}
+.nav-link .en{display:block;font-size:10px;opacity:.6;font-weight:400;margin-top:2px}
+.nav-link.active .en{opacity:.8}
+
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;width:100%;min-width:0}
+header{height:var(--header-height);background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.header-left{display:flex;align-items:center;gap:16px}
+.menu-toggle-btn{display:flex;background:none;border:none;font-size:22px;color:var(--text-main);cursor:pointer;padding:8px;border-radius:8px;transition:.2s}
+.menu-toggle-btn:hover{background:var(--bg-body);color:var(--accent)}
+.page-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-title .en{font-size:12px;color:var(--text-muted);font-weight:500;display:block;margin-top:2px}
+.user-profile{display:flex;align-items:center;gap:12px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;flex-shrink:0}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:8px;font-size:13px;color:var(--text-muted);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;transition:.2s;width:36px;height:36px}
+.logout-btn:hover{border-color:var(--danger);color:var(--danger);background:#fee2e2}
+.role-chip{font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;background:var(--accent-light);color:#1e40af;white-space:nowrap;display:none}
+.notif-btn{position:relative;background:none;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:.2s}
+.notif-btn:hover{border-color:var(--accent);color:var(--accent)}
+.notif-count{position:absolute;top:-6px;right:-6px;background:var(--danger);color:white;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+
+.content-scroll{padding:24px;overflow-y:auto;flex:1;width:100%;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;}
+.dashboard-grid{display:grid;grid-template-columns:1fr;gap:20px;width:100%}
+
+.inner-tabs{display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap;}
+.inner-tab{padding:8px 16px;border:none;background:none;font-size:15px;font-weight:600;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;font-family:inherit;display:flex;align-items:center;gap:8px;}
+.inner-tab:hover{color:var(--accent);}
+.inner-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.card{background:var(--card-bg);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.06);padding:24px;border:1px solid var(--border);width:100%}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.card-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{background:white;border-radius:16px;padding:20px;border:1px solid var(--border);border-left:5px solid var(--accent);display:flex;flex-direction:column;gap:6px;transition:transform 0.2s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.06)}
+.kpi-card .kpi-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.kpi-card .kpi-value{font-family:'Manrope',sans-serif;font-weight:800;font-size:28px}
+.kpi-card .kpi-sub{font-size:11px;color:var(--text-muted)}
+.kpi-card.danger{border-left-color:var(--danger)}.kpi-card.danger .kpi-value{color:var(--danger)}
+.kpi-card.warning{border-left-color:var(--warning)}.kpi-card.warning .kpi-value{color:var(--warning)}
+.kpi-card.success{border-left-color:var(--success)}.kpi-card.success .kpi-value{color:var(--success)}
+.kpi-card.purple{border-left-color:#8b5cf6}.kpi-card.purple .kpi-value{color:#8b5cf6}
+
+.btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;font-family:inherit;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#2563eb;box-shadow:0 4px 12px rgba(59,130,246,0.3)}
+.btn-secondary{background:white;color:var(--text-main);border-color:var(--border)}
+.btn-secondary:hover{background:var(--bg-body)}
+.btn-danger{background:var(--danger);color:white}
+.btn-danger:hover{background:#dc2626}
+.btn-success{background:var(--success);color:white}
+.btn-sm{padding:6px 14px;font-size:12px}
+.filter-btn{padding:8px 16px;background:white;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;white-space:nowrap}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
+.form-input,.form-select,.form-textarea{padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;color:var(--text-main);background:white;transition:.2s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-light)}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:13px;font-weight:500;color:var(--text-main)}
+.form-label .req{color:var(--danger)}
+.registry-select{padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:white;min-width:160px;max-width:100%;flex:1}
+.registry-search{flex:1;min-width:200px;position:relative;width:100%}
+.registry-search input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit}
+.registry-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px}
+.registry-toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+
+.table-responsive{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -24px;padding:0 24px;}
+.registry-table{width:100%;border-collapse:collapse;border-spacing:0;table-layout:auto;}
+.registry-table th{text-align:left;padding:12px 8px;font-size:11px;text-transform:uppercase;color:var(--text-muted);border-bottom:2px solid var(--border);font-weight:600;background:#f8fafc;white-space:normal; vertical-align:bottom; position: sticky; top: 0; z-index: 10; resize: horizontal; overflow: auto; min-width: 50px;}
+.registry-table td{padding:12px 8px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top;word-break:break-word;white-space:normal}
+.registry-table tr{transition:background .15s}
+.registry-table tr:hover{background:#fafbfc}
+.registry-table tr.row-overdue{border-left:4px solid var(--danger)}
+.registry-table tr.row-today{border-left:4px solid var(--warning)}
+.registry-table tr.row-soon{border-left:4px solid #eab308}
+.registry-table tr.row-closed{border-left:4px solid var(--success)}
+.registry-table .id-cell{font-weight:600;white-space:nowrap}
+.registry-table .date-cell{white-space:nowrap;font-size:12px}
+.registry-table .desc-cell{line-height:1.45;min-width:200px}
+.registry-empty{padding:40px;text-align:center;color:var(--text-muted)}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;display:inline-block}
+.badge-danger{background:#fee2e2;color:var(--danger)}
+.badge-warning{background:#fef3c7;color:var(--warning)}
+.badge-success{background:#d1fae5;color:var(--success)}
+.badge-neutral{background:#f1f5f9;color:var(--text-muted)}
+.badge-info{background:#dbeafe;color:var(--accent)}
+
+.start-check-form {background: white;border-radius: 16px;padding: 30px;box-shadow: 0 4px 12px rgba(0,0,0,0.05);border: 1px solid var(--border);width: 100%;max-width: 600px;margin: 20px auto;overflow: hidden;}
+.start-check-title {font-family: 'Manrope', sans-serif;font-size: 22px;font-weight: 700;margin-bottom: 24px;text-align: center;color: var(--text-main);}
+
+.checklist-layout{display:grid;grid-template-columns:1fr;gap:20px}
+.checklist-sidebar{background:var(--card-bg);border-radius:16px;border:1px solid var(--border);padding:20px;height:fit-content;position:relative;width:100%; box-shadow: 0 2px 8px rgba(0,0,0,.04);}
+.checklist-sidebar-title{font-family:'Manrope',sans-serif;font-weight:700;margin-bottom:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;font-size:11px}
+.checklist-progress-bar{height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin-bottom:8px}
+.checklist-progress-fill{height:100%;background:var(--success);width:0%;transition:.3s}
+.checklist-progress-text{font-size:12px;color:var(--text-muted);margin-bottom:20px}
+.checklist-toc{list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.checklist-toc li{padding:8px 12px;font-size:12px;color:var(--text-muted);border-radius:20px;cursor:pointer;transition:.2s;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f1f5f9;border:1px solid var(--border)}
+.checklist-toc li:hover{background:#e2e8f0;color:var(--accent)}
+.checklist-toc li.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent);font-weight:500}
+.checklist-toc .toc-count{font-size:10px;background:white;padding:2px 6px;border-radius:8px;flex-shrink:0}
+.checklist-main{display:flex;flex-direction:column;gap:20px;width:100%}
+.checklist-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.checklist-title{font-family:'Manrope',sans-serif;font-size:20px;font-weight:700}
+.checklist-subtitle{font-size:13px;color:var(--text-muted);margin-top:4px}
+.checklist-section{background:white;border:1px solid var(--border);border-radius:16px;overflow:hidden; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,.04);}
+.checklist-section-header{padding:16px 20px;background:#f8fafc;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:.2s;gap:12px}
+.checklist-section-header:hover{background:#f1f5f9}
+.checklist-section-title{font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:normal;word-break:break-word}
+.section-num{background:var(--accent);color:white;width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.checklist-section-meta{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--text-muted);flex-shrink:0}
+.checklist-section-arrow{transition:.2s}
+.checklist-section.closed .checklist-section-arrow{transform:rotate(-90deg)}
+.checklist-section.closed .checklist-questions{display:none}
+.checklist-questions{padding:8px 12px}
+.checklist-question{padding:12px;border-radius:10px;transition:.2s;border-bottom:1px solid #f1f5f9}
+.checklist-question:last-child{border-bottom:none}
+.checklist-question:hover{background:#f8fafc}
+.checklist-question.has-violation{background:#fef2f2;border-left:4px solid var(--danger)}
+.checklist-question.no-violation{background:#f0fdf4}
+.checklist-question.not-applicable{background:#f8fafc;border-left:4px solid #94a3b8}
+.question-row{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.question-num{font-size:13px;font-weight:600;color:var(--text-muted);min-width:24px;padding-top:2px;flex-shrink:0}
+.question-text{flex:1;font-size:13px;line-height:1.5;min-width:200px;word-break:break-word}
+.question-actions{display:flex;gap:6px;flex-shrink:0;align-items:center;flex-wrap:wrap;justify-content:flex-end;width:100%;margin-top:10px}
+.answer-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:white;color:var(--text-muted);transition:.2s;font-family:inherit;white-space:nowrap;flex:1}
+.answer-btn:hover{border-color:var(--accent);color:var(--accent)}
+.answer-btn.active-ok{background:var(--success);color:white;border-color:var(--success)}
+.answer-btn.active-violation{background:var(--danger);color:white;border-color:var(--danger)}
+.answer-btn.active-na{background:#64748b;color:white;border-color:#64748b}
+.violation-form{margin-top:12px;padding:16px;background:white;border:1px solid #fecaca;border-radius:12px;display:flex;flex-direction:column;gap:12px}
+.violation-form-title{font-size:13px;font-weight:600;color:var(--danger);display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.violation-form .form-group{gap:6px}
+.violation-form .form-label{font-size:12px}
+.violation-form .form-input,.violation-form .form-select,.violation-form .form-textarea{padding:10px 12px;font-size:13px;width:100%}
+.file-upload{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px dashed var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text-muted);transition:.2s}
+.file-upload:hover{border-color:var(--accent);color:var(--accent)}
+.file-upload input{display:none}
+.checklist-actions{display:flex;justify-content:space-between;align-items:center;padding:20px;background:#f8fafc;border-radius:16px;border:1px solid var(--border);gap:16px;flex-wrap:wrap}
+.checklist-stats{font-size:13px;color:var(--text-muted)}
+.checklist-stats strong{color:var(--text-main)}
+
+.add-other-btn {display: inline-flex;align-items: center;gap: 8px;padding: 8px 16px;background: #f1f5f9;color: var(--text-muted);border: 1px dashed var(--border);border-radius: 8px;font-size: 13px;font-weight: 500;cursor: pointer;transition: all 0.2s;margin-top: 10px;width: 100%;justify-content: center;}
+.add-other-btn:hover {background: #e2e8f0;color: var(--accent);border-color: var(--accent);}
+
+.charts-row{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:20px}
+.chart-card{background:white;border-radius:16px;padding:20px;border:1px solid var(--border);box-shadow: 0 2px 8px rgba(0,0,0,.04);}
+.chart-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.chart-container{position: relative; height: 350px; width: 100%;}
+
+.bar-chart{display:flex;flex-direction:column;gap:14px}
+.bar-row{display:flex;flex-direction:column;gap:6px}
+.bar-row-head{display:flex;align-items:flex-start;gap:12px;justify-content:space-between}
+.bar-label{color:var(--text-main);font-size:13px;white-space:normal;word-break:break-word;line-height:1.35;flex:1;min-width:0}
+.bar-value{font-size:13px;font-weight:600;color:var(--text-main);white-space:nowrap;flex-shrink:0}
+.bar-track{width:100%;height:18px;background:#f1f5f9;border-radius:8px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:8px;transition:width .6s ease;min-width:4px}
+.bar-fill.blue{background:linear-gradient(90deg,#3b82f6,#6366f1)}
+
+.svetofor-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.sveto-card{background:white;border-radius:16px;padding:16px;border:1px solid var(--border);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,.04);}
+.sveto-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:6px}
+.sveto-card.c-red::before{background:var(--danger)}
+.sveto-card.c-yellow::before{background:#eab308}
+.sveto-card.c-green::before{background:var(--success)}
+.sveto-card.c-gray::before{background:#94a3b8}
+.sveto-card .sveto-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:600;letter-spacing:.5px;line-height:1.3}
+.sveto-card .sveto-value{font-family:'Manrope',sans-serif;font-weight:800;font-size:28px}
+.sveto-card.c-red .sveto-value{color:var(--danger)}
+.sveto-card.c-yellow .sveto-value{color:#ca8a04}
+.sveto-card.c-green .sveto-value{color:var(--success)}
+.sveto-card .sveto-hint{font-size:11px;color:var(--text-muted);line-height:1.35}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Manrope',sans-serif;font-weight:700;font-size:18px}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:6px;border-radius:8px}
+.modal-close:hover{background:var(--bg-body);color:var(--danger)}
+.modal-body{padding:24px;display:flex;flex-direction:column;gap:16px}
+.modal-footer{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px;border-top:1px solid var(--border);background:#fafbfc; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;}
+.form-row{display:grid;grid-template-columns:1fr;gap:16px}
+.mobile-menu-btn{display:none}
+
+#toastBox{position:fixed;bottom:24px;right:24px;z-index:9000;display:flex;flex-direction:column;gap:10px;max-width:360px}
+.toast{background:#1e293b;color:white;padding:14px 18px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.2);font-size:14px;display:flex;align-items:flex-start;gap:10px;animation:toastIn .25s ease;border-left:4px solid var(--accent)}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.warning{border-left-color:var(--warning)}
+.toast i{margin-top:2px}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+
+#confirmOverlay .modal{max-width:420px}
+#confirmOverlay .modal-body{padding:20px 24px;font-size:14px;line-height:1.5}
+
+#photoModal .modal { max-width: 800px; }
+#photoModal .modal-body { padding: 0; display: flex; justify-content: center; background: #000; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+#photoModal img { max-width: 100%; max-height: 75vh; object-fit: contain; display: block; }
+
+@media(max-width:900px){
+    .sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);width:280px;box-shadow:10px 0 30px rgba(0,0,0,0.2)}
+    .sidebar.open{transform:translateX(0)}
+    .sidebar.collapsed{margin-left:0; transform:translateX(-100%);}
+    .mobile-menu-btn{display:flex}
+    .role-chip, #userNameLabel {display:none !important}
+    .charts-row{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    .svetofor-grid{grid-template-columns:repeat(2,1fr)}
+    .question-actions {justify-content:flex-start}
+    .answer-btn{flex:none}
+    .table-responsive{margin:0; padding:0;}
+    header{padding:0 16px}
+    .page-title{font-size:16px}
+    .content-scroll{padding:16px}
+    .card{padding:16px}
+    .start-check-form{max-width:100%; padding:16px; margin: 10px auto;}
+    .chart-container { height: 250px; }
+}
+@media(min-width:901px){
+    .mobile-menu-btn{display:none}
+    .role-chip{display:inline-block}
+    .checklist-layout{grid-template-columns:280px 1fr}
+    .checklist-sidebar{position:sticky;top:0}
+    .form-row{grid-template-columns:1fr 1fr}
+    .kpi-grid{grid-template-columns:repeat(4,1fr)}
+    .svetofor-grid{grid-template-columns:repeat(4,1fr)}
+    .charts-row{grid-template-columns:1fr 1fr}
+    .question-actions{width:auto;margin-top:0}
+    .table-responsive{margin:0 -24px; padding:0 24px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+    <div class="login-card">
+        <div class="login-logo"><i class="fa-solid fa-shield-halved"></i><span>Safety 360</span></div>
+        <div class="login-sub">1 ступень контроля</div>
+
+        <div class="login-tabs">
+            <div class="login-tab active" id="tabLoginBtn" onclick="switchLoginTab('login')">Вход</div>
+            <div class="login-tab" id="tabRegBtn" onclick="switchLoginTab('register')">Регистрация</div>
+        </div>
+
+        <div id="loginFormWrap">
+            <div class="login-error" id="loginError"><i class="fa-solid fa-circle-exclamation"></i><span id="loginErrorText">Неверный логин или пароль</span></div>
+            <div class="form-group">
+                <label class="form-label">Логин</label>
+                <input type="text" class="form-input" id="loginUser" placeholder="Например: MeshalkinMA" autocomplete="username">
+            </div>
+            <div class="form-group" style="position: relative;">
+                <label class="form-label">Пароль</label>
+                <input type="password" class="form-input" id="loginPass" placeholder="Введите пароль" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right: 44px;">
+                <i class="fa-solid fa-eye" id="togglePassIcon" onclick="togglePasswordVisibility()" style="position: absolute; right: 14px; top: 38px; cursor: pointer; color: var(--text-muted); z-index: 10; font-size: 16px;"></i>
+            </div>
+            <button class="login-btn" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket" style="margin-right:8px;"></i>Войти</button>
+        </div>
+
+        <div id="registerFormWrap" style="display:none">
+            <div class="login-error" id="regError"><i class="fa-solid fa-circle-exclamation"></i><span id="regErrorText"></span></div>
+            <div class="form-group">
+                <label class="form-label">ФИО <span class="req">*</span></label>
+                <input type="text" class="form-input" id="regFio" placeholder="Иванов Иван Иванович">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Должность <span class="req">*</span></label>
+                <input type="text" class="form-input" id="regPosition" placeholder="Например: Мастер">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Площадка <span class="req">*</span></label>
+                <select class="form-select" id="regSite" onchange="onRegSiteChange()"><option value="">Выберите площадку</option></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Подразделение <span class="req">*</span></label>
+                <select class="form-select" id="regDept"><option value="">Сначала выберите площадку</option></select>
+            </div>
+            <button class="login-btn" onclick="doRegister()"><i class="fa-solid fa-user-plus" style="margin-right:8px;"></i>Зарегистрироваться</button>
+            <div id="regResult" style="display:none; margin-top:18px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:14px; font-size:13px; line-height:1.6;">
+                <div style="font-weight:600; color:#065f46; margin-bottom:6px;">Регистрация успешна!</div>
+                <div>Логин: <b id="regResLogin"></b></div>
+                <div>Пароль: <b id="regResPass"></b></div>
+                <div style="color:#64748b; margin-top:6px;">Сохраните данные для входа.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="appShell" style="display:none;">
+<aside class="sidebar" id="sidebar">
+    <div class="logo-area">
+        <i class="fa-solid fa-shield-halved logo-icon"></i>
+        <span class="logo-text">Safety 360</span>
+    </div>
+    <div class="nav-section">1 ступень контроля</div>
+    <ul class="nav-menu">
+        <li class="nav-item" data-perm="level1"><a href="#" class="nav-link active" onclick="switchTab('level1', this); return false;"><i class="fa-solid fa-magnifying-glass-chart"></i><span>Проверка<span class="en">1st Level Control</span></span></a></li>
+        <li class="nav-item" data-perm="l1registry"><a href="#" class="nav-link" onclick="switchTab('l1registry', this); return false;"><i class="fa-solid fa-list-check"></i><span>Реестр проведения<span class="en">Inspection Registry</span></span></a></li>
+        <li class="nav-item" data-perm="l1analytics"><a href="#" class="nav-link" onclick="switchTab('l1analytics', this); return false;"><i class="fa-solid fa-chart-pie"></i><span>Аналитика проверок<span class="en">Inspection Analytics</span></span></a></li>
+        <li class="nav-item" data-perm="users"><a href="#" class="nav-link" onclick="switchTab('users', this); return false;"><i class="fa-solid fa-users-gear"></i><span>Пользователи<span class="en">Users</span></span></a></li>
+    </ul>
+</aside>
+
+<main class="main-content">
+    <header>
+        <div class="header-left">
+            <button class="menu-toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+            <div class="page-title" id="pageTitle">1 ступень контроля<span class="en">1st Level Control</span></div>
+        </div>
+        <div class="user-profile">
+            <button class="notif-btn" onclick="openNotifications()" title="Уведомления">
+                <i class="fa-solid fa-bell"></i>
+                <span class="notif-count" id="notifCount" style="display:none;">0</span>
+            </button>
+            <span class="role-chip" id="roleChip">—</span>
+            <span style="font-size:13px;color:var(--text-muted); font-weight:500;" id="userNameLabel">—</span>
+            <div class="avatar" id="userAvatar">—</div>
+            <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+    </header>
+
+    <div class="content-scroll" id="contentScroll">
+        <div id="section-level1" class="dashboard-grid" style="display:none;">
+            <div id="startCheckForm" class="start-check-form">
+                <div class="start-check-title">Начать проверку</div>
+                <div class="form-group">
+                    <label class="form-label">Площадка <span class="req">*</span></label>
+                    <select class="form-select" id="startSite" onchange="onStartSiteChange()"><option value="">Выберите</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Подразделение <span class="req">*</span></label>
+                    <select class="form-select" id="startDept"><option value="">Сначала площадка</option></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Участок/объект <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="startObject" placeholder="Введите название участка или объекта">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Дата проверки</label>
+                    <input type="date" class="form-input" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Кто проверяет</label>
+                    <input type="text" class="form-input" id="startBy" readonly>
+                </div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="beginChecklist()">Начать проверку</button>
+            </div>
+
+            <div id="activeCheckContainer" style="display:none;">
+                <div class="checklist-layout">
+                    <div class="checklist-sidebar">
+                        <div class="checklist-sidebar-title">Прогресс проверки</div>
+                        <div class="checklist-progress-bar"><div class="checklist-progress-fill" id="l1ProgressFill"></div></div>
+                        <div class="checklist-progress-text" id="l1ProgressText">0 из 0</div>
+                        <div class="checklist-sidebar-title">Разделы</div>
+                        <ul class="checklist-toc" id="l1Toc"></ul>
+                    </div>
+                    <div class="checklist-main">
+                        <div class="checklist-header">
+                            <div>
+                                <div class="checklist-title" id="activeCheckTitle">1 ступень контроля</div>
+                                <div class="checklist-subtitle" id="activeCheckSubtitle">Ежедневный контроль</div>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                <button class="filter-btn" onclick="confirmCancelCheck()"><i class="fa-solid fa-xmark" style="margin-right:6px;"></i>Отмена</button>
+                            </div>
+                        </div>
+                        <div id="l1Sections"></div>
+                        <div class="checklist-actions">
+                            <div class="checklist-stats" id="l1Stats">Проверено: <strong>0</strong> · Нарушений: <strong>0</strong> · Не актуально: <strong>0</strong></div>
+                            <button class="btn btn-primary" id="saveL1Btn" onclick="saveL1()"><i class="fa-solid fa-floppy-disk"></i>Сохранить проверку</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-l1registry" class="dashboard-grid" style="display:none;">
+            <div class="inner-tabs">
+                <button class="inner-tab active" id="tab-violations" onclick="switchRegistryTab('violations')"><i class="fa-solid fa-triangle-exclamation"></i> Нарушения</button>
+                <button class="inner-tab" id="tab-checks" onclick="switchRegistryTab('checks')"><i class="fa-solid fa-clipboard-check"></i> Проведённые проверки</button>
+            </div>
+
+            <div id="registry-violations">
+                <div class="kpi-grid" id="l1RegKpi"></div>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Реестр выявленных нарушений</h2></div>
+                    <div class="registry-toolbar">
+                        <div class="registry-search"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="l1RegSearch" placeholder="Поиск по описанию / ответственному..." oninput="renderL1Registry()"></div>
+                        <select class="registry-select" id="l1RegFilterSite" onchange="renderL1Registry()"><option value="">Все площадки</option></select>
+                        <select class="registry-select" id="l1RegFilterDept" onchange="renderL1Registry()"><option value="">Все подразделения</option></select>
+                        <select class="registry-select" id="l1RegFilterStatus" onchange="renderL1Registry()">
+                            <option value="">Все нарушения</option>
+                            <option value="open">Не устранено</option>
+                            <option value="overdue">Просрочено</option>
+                            <option value="closed">Устранено</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="registry-table" id="l1RegTable">
+                            <thead><tr>
+                                <th>ФИО проводившего</th><th>Дата выявления</th><th>Площадка</th><th>Подразделение</th><th>Объект/Участок</th><th>Раздел</th><th>Описание</th><th>Фото нарушения</th><th>Ответственный за устранение</th><th>Срок устранения</th><th>Просрочка</th><th>Статус</th><th>Фото устранения</th><th>Комментарий</th>
+                            </tr></thead>
+                            <tbody id="l1RegBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="l1RegEmpty" class="registry-empty" style="display:none;">По выбранным фильтрам ничего не найдено</div>
+                </div>
+            </div>
+
+            <div id="registry-checks" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Журнал проведённых проверок</h2></div>
+                    <div class="table-responsive">
+                        <table class="registry-table">
+                            <thead><tr>
+                                <th>Дата</th><th>Время</th><th>Площадка</th><th>Подразделение</th><th>Объект/Участок</th><th>Кто провёл</th><th>Комментарий</th>
+                            </tr></thead>
+                            <tbody id="l1ChecksBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="l1ChecksEmpty" class="registry-empty" style="display:none;">Проверок пока нет</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-l1analytics" class="dashboard-grid" style="display:none;">
+            <div class="inner-tabs" id="analyticsSiteTabs"></div>
+            <div id="analyticsContent"></div>
+        </div>
+
+        <div id="section-users" class="dashboard-grid" style="display:none;">
+            <div class="card">
+                <div class="card-header"><h2 class="card-title">Зарегистрированные пользователи</h2></div>
+                <div class="table-responsive">
+                    <table class="registry-table">
+                        <thead><tr>
+                            <th>ФИО</th><th>Должность</th><th>Логин</th><th>Площадка</th><th>Подразделение</th><th>Роль</th><th>Действие</th>
+                        </tr></thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+                <div id="usersEmpty" class="registry-empty" style="display:none;">Пользователей нет</div>
+            </div>
+        </div>
+
+    </div>
+</main>
+</div>
+
+<div class="modal-overlay" id="resolveModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Подтвердить устранение</div>
+            <button class="modal-close" onclick="closeResolveModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Фото устранения</label>
+                <label class="file-upload">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>Прикрепить фото</span>
+                    <input type="file" accept="image/*" id="resolvePhoto" onchange="showResolvePhotoName()">
+                </label>
+                <span id="resolvePhotoName" style="font-size:11px;color:var(--text-muted);"></span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Комментарий</label>
+                <textarea class="form-textarea" id="resolveComment" placeholder="Например: дефект устранён, замечаний нет"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeResolveModal()">Отмена</button>
+            <button class="btn btn-success" onclick="confirmResolve()">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="notifModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Уведомления</div>
+            <button class="modal-close" onclick="closeNotifModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="notifList" style="gap:10px;"></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeNotifModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmOverlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="confirmTitle">Подтверждение</div>
+            <button class="modal-close" onclick="closeConfirm()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" id="confirmText"></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeConfirm()">Отмена</button>
+            <button class="btn btn-primary" id="confirmOkBtn">ОК</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="photoModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Просмотр фото</div>
+            <button class="modal-close" onclick="closePhotoModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <img id="photoModalImg" src="" alt="Фото">
+        </div>
+    </div>
+</div>
+
+<div id="toastBox"></div>
+
+<script>
+const SITES = {
+    'СТК': { depts:['Бригада А','Бригада Б','ТУ - техническое управление','СК - складской комплекс','ИК - производство инженерных комплектов','ТрУ - транспортное управление','ОКК - отдел контроля качества','СТК - производство СТК, площадка Бутово','ОТСиРП - Отдел технологического сопровождения','ШМ - школа мастерства'] },
+    'РЗ': { depts:['УЛ - участок ламинации','УПВХ - участок производства изделий из ПВХ','СОиТ - участок спецоснастки и тары','УАЛ - участок производства изделий из АЛ','СК - складской комплекс Москва','ТУ - техническое управление','УМиАТ - транспортное управление','ОЭ - отдел эксплуатации','ПСПК - производство светопрозрачных конструкций'] },
+    'НЗ': { depts:['ФП №1 РЦ1','ФП №1 РЦ2','ВП - вспомогательное производство','СК - складской комплекс','РУ - ремонтное управление','ГЭП - группа экспериментального производства','УККП - управление контроля качества','БСЦ - бетоносмесительное производство','УМиАТ - управление механизации и автотранспорта','РЦ3 МП - рабочий центр 3','МС - модульное строительство'] },
+    'КЗ': { depts:['МШИ - производство МШИ','СК - складской комплекс КЗ','УМиАТ - транспортное управление','ПБП - производство бетонной плитки','ОТК - отдел контроля качества','ОГМ - отдел главного механика'] },
+    'МС': { depts:['Верхние поля','Восточное Бутово'] },
+    'Стройка': { depts:['РСУ-1','РСУ-2','РСУ-3','РСУ-4','УМ СПК №1 по ГП-Реновации','УМ СПК №1 по ГП-МФС','УМ СПК №1 по СЭМ','УМ СПК №2 по СЭМ','УМ СПК №2 по ГП-МФС','УМ СТК №1 ВГО (СЭМ)','УМ СТК №3 по ГП-МФС','УМ СТК №4 ВГО (СЭМ)','МУ №1 РП','МУ №2 РП'] }
+};
+
+const PERMISSIONS = {
+    'general_director':     { label:'Генеральный директор', pages:['level1','l1registry','l1analytics','users'], canConduct:true, sites:null },
+    'head_otpb':            { label:'Начальник УОТПБиЭ',    pages:['level1','l1registry','l1analytics','users'], canConduct:true, sites:null },
+    'department_head':      { label:'Руководитель отдела',  pages:['level1','l1registry','l1analytics','users'], canConduct:true, sites:null },
+    'ot_specialist':        { label:'Специалист по ОТ',     pages:['level1','l1registry','l1analytics'], canConduct:true, sites:null },
+    'worker':               { label:'Сотрудник',            pages:['level1','l1registry','l1analytics'], canConduct:true, sites:null }
+};
+
+const TAB_TITLES = {
+    level1:['1 ступень контроля','1st Level Control'],
+    l1registry:['Реестр проведения 1 ступени','Inspection Registry'],
+    l1analytics:['Аналитика проверок','Inspection Analytics'],
+    users:['Пользователи','Users Management']
+};
+
+let currentUser = null;
+let L1_VIOLATIONS = [];
+let L1_CHECKS = [];
+let NOTIFICATIONS = [];
+let USERS_LIST = [];
+let currentCheckData = { site:'', dept:'', object:'', date:'', time:'', master:'' };
+let currentResolveId = null;
+let currentCustomQuestions = {};
+let currentAnalyticsSite = 'all';
+let analyticsCharts = {};
+let l1State = {};
+let confirmCallback = null;
+
+const TODAY = new Date();
+
+function $(id){ return document.getElementById(id); }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function shortFio(fio){ 
+    if(!fio) return '—'; 
+    if(fio === 'Не указано') return 'Не указано';
+    const parts = String(fio).trim().split(/\s+/); 
+    if(parts.length === 1) return parts[0]; 
+    const surname = parts[0]; 
+    if(parts.length === 2 && parts[1].includes('.')) return fio;
+    const initials = parts.slice(1).map(p => p[0].toUpperCase() + '.').join(''); 
+    return `${surname} ${initials}`; 
+}
+function formatDate(d){ if(!d) return '—'; const dt=new Date(d); return `${String(dt.getDate()).padStart(2,'0')}.${String(dt.getMonth()+1).padStart(2,'0')}.${dt.getFullYear()}`; }
+function formatTime(d){ const dt=new Date(d); return `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`; }
+function daysBetween(a,b){ return Math.floor((a-b)/86400000); }
+
+function toast(msg, type='info'){
+    const box = $('toastBox');
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    const icon = type==='success' ? 'fa-circle-check' : type==='error' ? 'fa-circle-exclamation' : type==='warning' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+    el.innerHTML = `<i class="fa-solid ${icon}"></i><div>${escapeHtml(msg)}</div>`;
+    box.appendChild(el);
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 3500);
+}
+
+function askConfirm(text, cb, title='Подтверждение'){
+    $('confirmTitle').textContent = title;
+    $('confirmText').textContent = text;
+    confirmCallback = cb;
+    $('confirmOverlay').classList.add('open');
+    $('confirmOkBtn').onclick = ()=>{ closeConfirm(); if(confirmCallback) confirmCallback(); };
+}
+function closeConfirm(){ $('confirmOverlay').classList.remove('open'); confirmCallback = null; }
+
+function getUserSites(){
+    if(!currentUser) return [];
+    if(currentUser.site_access) return [currentUser.site_access];
+    return Object.keys(SITES);
+}
+
+function switchLoginTab(tab){
+    $('tabLoginBtn').classList.toggle('active', tab==='login');
+    $('tabRegBtn').classList.toggle('active', tab==='register');
+    $('loginFormWrap').style.display = tab==='login' ? 'block' : 'none';
+    $('registerFormWrap').style.display = tab==='register' ? 'block' : 'none';
+    $('loginError').classList.remove('show');
+    $('regError').classList.remove('show');
+    if(tab==='register' && $('regSite').options.length <= 1){
+        Object.keys(SITES).forEach(k=>{
+            const o = document.createElement('option'); o.value=k; o.textContent=k; $('regSite').appendChild(o);
+        });
+    }
+}
+
+function togglePasswordVisibility(){
+    const p = $('loginPass'), i = $('togglePassIcon');
+    if(p.type==='password'){ p.type='text'; i.classList.remove('fa-eye'); i.classList.add('fa-eye-slash'); }
+    else { p.type='password'; i.classList.remove('fa-eye-slash'); i.classList.add('fa-eye'); }
+}
+
+async function doLogin(){
+    const login = $('loginUser').value.trim();
+    const pass = $('loginPass').value;
+    const err = $('loginError');
+    if(!login || !pass){ $('loginErrorText').textContent='Введите логин и пароль'; err.classList.add('show'); return; }
+    try {
+        const res = await fetch('/api/login', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ login, password: pass })
+        });
+        const data = await res.json();
+        if(data.success){
+            currentUser = data.user;
+            sessionStorage.setItem('safety360_user', JSON.stringify(currentUser));
+            applyUser();
+            await loadUsers();
+            await loadDataFromServer();
+            await loadNotifications();
+        } else {
+            $('loginErrorText').textContent = data.message || 'Неверный логин или пароль';
+            err.classList.add('show');
+        }
+    } catch(e){
+        $('loginErrorText').textContent = 'Ошибка соединения с сервером';
+        err.classList.add('show');
+    }
+}
+
+function onRegSiteChange(){
+    const site = $('regSite').value;
+    const d = $('regDept');
+    d.innerHTML = '<option value="">Выберите</option>';
+    if(!site) return;
+    SITES[site].depts.forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent=x; d.appendChild(o); });
+}
+
+async function doRegister(){
+    const fio = $('regFio').value.trim();
+    const position = $('regPosition').value.trim();
+    const site = $('regSite').value;
+    const dept = $('regDept').value;
+    const err = $('regError');
+    if(!fio || !position || !site || !dept){
+        $('regErrorText').textContent = 'Заполните все поля';
+        err.classList.add('show');
+        return;
+    }
+    try {
+        const res = await fetch('/api/register', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ fio, position, site, dept })
+        });
+        const data = await res.json();
+        if(data.success){
+            err.classList.remove('show');
+            $('regResult').style.display = 'block';
+            $('regResLogin').textContent = data.login;
+            $('regResPass').textContent = data.password;
+            toast('Регистрация успешна. Логин и пароль показаны ниже.', 'success');
+        } else {
+            $('regErrorText').textContent = data.error || 'Ошибка регистрации';
+            err.classList.add('show');
+        }
+    } catch(e){
+        $('regErrorText').textContent = 'Ошибка соединения с сервером';
+        err.classList.add('show');
+    }
+}
+
+function applyUser(){
+    const u = currentUser;
+    const perm = PERMISSIONS[u.role] || PERMISSIONS['worker'];
+    $('loginScreen').style.display='none';
+    $('appShell').style.display='flex';
+    $('userNameLabel').textContent = shortFio(u.fio);
+    $('userAvatar').textContent = u.avatar || '??';
+    $('roleChip').textContent = (u.role === 'worker' && u.position) ? u.position : perm.label;
+    document.querySelectorAll('.nav-item[data-perm]').forEach(li=>{
+        const key = li.getAttribute('data-perm');
+        li.style.display = perm.pages.includes(key) ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    document.querySelectorAll('.dashboard-grid').forEach(s=>s.style.display='none');
+    const first = perm.pages[0];
+    const firstLink = document.querySelector(`.nav-item[data-perm="${first}"] .nav-link`);
+    switchTab(first, firstLink);
+}
+
+function doLogout(){
+    currentUser = null;
+    NOTIFICATIONS = [];
+    sessionStorage.removeItem('safety360_user');
+    $('appShell').style.display='none';
+    $('loginScreen').style.display='flex';
+    $('loginPass').value='';
+    $('loginError').classList.remove('show');
+    $('notifCount').style.display='none';
+}
+
+async function loadUsers(){
+    try {
+        const res = await fetch('/api/users');
+        USERS_LIST = await res.json();
+        if($('section-users').style.display === 'grid') renderUsersList();
+    } catch(e){
+        console.error('Ошибка загрузки пользователей', e);
+        USERS_LIST = [];
+    }
+}
+
+function userOptionsHtml(selectedFio){
+    if(!USERS_LIST.length) return '<option value="">— нет пользователей —</option>';
+    let html = '<option value="">Выберите ответственного</option>';
+    USERS_LIST.forEach(u=>{
+        const sel = (u.fio === selectedFio) ? ' selected' : '';
+        html += `<option value="${escapeHtml(u.fio)}"${sel}>${escapeHtml(shortFio(u.fio))} — ${escapeHtml(u.position||'')}</option>`;
+    });
+    return html;
+}
+
+async function loadDataFromServer(){
+    try {
+        const vRes = await fetch('/api/violations');
+        L1_VIOLATIONS = (await vRes.json()).map(v=>({
+            ...v,
+            desc: v.desc_text,
+            checkDate: v.check_date,
+            closedDate: v.closed_date,
+            masterName: v.master_name || '—',
+            resolvePhoto: v.resolve_photo_url || null,
+            resolveComment: v.resolve_comment || null,
+            objectName: v.object_name || '—'
+        }));
+        const cRes = await fetch('/api/checks');
+        L1_CHECKS = (await cRes.json()).map(c=>({
+            ...c,
+            date: c.check_date,
+            time: c.check_time || '—',
+            objectName: c.object_name || '—'
+        }));
+        if($('section-l1registry').style.display === 'grid'){
+            if($('registry-violations').style.display !== 'none') renderL1Registry();
+            if($('registry-checks').style.display !== 'none') renderChecksRegistry();
+        }
+        if($('section-l1analytics').style.display === 'grid') renderAnalytics(currentAnalyticsSite);
+    } catch(e){ console.error('Ошибка загрузки данных', e); }
+}
+
+async function loadNotifications(){
+    if(!currentUser) return;
+    try {
+        const res = await fetch('/api/notifications/' + encodeURIComponent(currentUser.fio));
+        NOTIFICATIONS = await res.json();
+        const unread = NOTIFICATIONS.filter(n=>!n.is_read).length;
+        const el = $('notifCount');
+        if(unread > 0){ el.style.display='flex'; el.textContent = unread; }
+        else el.style.display='none';
+    } catch(e){ console.error(e); }
+}
+
+function toggleSidebar(){
+    const sb = $('sidebar');
+    if(window.innerWidth <= 900) sb.classList.toggle('open');
+    else sb.classList.toggle('collapsed');
+}
+
+function switchTab(tab, el){
+    if(!currentUser) return;
+    const perm = PERMISSIONS[currentUser.role] || PERMISSIONS['worker'];
+    if(!perm.pages.includes(tab)){ tab = perm.pages[0]; el = document.querySelector(`.nav-item[data-perm="${tab}"] .nav-link`); }
+    Object.keys(TAB_TITLES).forEach(id=>{ const s=$('section-'+id); if(s) s.style.display='none'; });
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    const t = TAB_TITLES[tab];
+    $('pageTitle').innerHTML = `${t[0]}<span class="en">${t[1]}</span>`;
+    $('section-'+tab).style.display = 'grid';
+    if(el) el.classList.add('active');
+
+    if(tab==='level1'){
+        $('startCheckForm').style.display='block';
+        $('activeCheckContainer').style.display='none';
+        initStartForm();
+    }
+    if(tab==='l1registry') switchRegistryTab('violations');
+    if(tab==='l1analytics') initAnalyticsTabs();
+    if(tab==='users') renderUsersList();
+
+    if(window.innerWidth <= 900) $('sidebar').classList.remove('open');
+}
+
+function switchRegistryTab(sub){
+    $('registry-violations').style.display = 'none';
+    $('registry-checks').style.display = 'none';
+    $('tab-violations').classList.remove('active');
+    $('tab-checks').classList.remove('active');
+    if(sub==='violations'){
+        $('registry-violations').style.display = 'block';
+        $('tab-violations').classList.add('active');
+        renderL1Registry();
+    } else {
+        $('registry-checks').style.display = 'block';
+        $('tab-checks').classList.add('active');
+        renderChecksRegistry();
+    }
+}
+
+function renderUsersList() {
+    const tbody = $('usersBody'); tbody.innerHTML = '';
+    if(!USERS_LIST.length) { $('usersEmpty').style.display = 'block'; return; }
+    $('usersEmpty').style.display = 'none';
+
+    USERS_LIST.forEach(u => {
+        const roleLabel = PERMISSIONS[u.role] ? PERMISSIONS[u.role].label : 'Сотрудник';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="id-cell">${escapeHtml(u.fio)}</td>
+            <td>${escapeHtml(u.position || '—')}</td>
+            <td>${escapeHtml(u.login)}</td>
+            <td><span class="badge badge-info">${escapeHtml(u.site_access || 'Все')}</span></td>
+            <td>${escapeHtml(u.dept_access || 'Все')}</td>
+            <td><span class="badge ${u.role==='worker'?'badge-neutral':'badge-success'}">${escapeHtml(roleLabel)}</span></td>
+            <td>
+                ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${escapeHtml(u.fio)}')">Удалить</button>` : '<span style="color:var(--text-muted); font-size:12px;">Это вы</span>'}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function deleteUser(id, fio) {
+    askConfirm(`Вы уверены, что хотите удалить пользователя ${fio}?`, async () => {
+        try {
+            const res = await fetch('/api/users/' + id, { method: 'DELETE' });
+            if(res.ok) {
+                toast('Пользователь удален', 'success');
+                await loadUsers();
+            } else {
+                toast('Ошибка при удалении', 'error');
+            }
+        } catch(e) {
+            toast('Ошибка сети', 'error');
+        }
+    });
+}
+
+const L1_CHECKLIST = [
+    { num:1, title:'Документация', section:'Документация', questions:[
+        'Журнал инструктажа по охране труда на рабочем месте','Журнал противопожарного инструктажа','Журнал присвоения 1-ой группы по электробезопасности не электротехническому персоналу','Журнал стажировки и допуска к самостоятельной работе','Наличие ИОТ и ознакомление с ними, наличие перечней','Журнал выдачи СИЗ','Журнал учёта и периодический осмотр монтажной оснастки, приспособлений, инвентаря для производства работ','Журнал учёта работ по наряд-допуску и наряд-допуск','Журнал учёта и осмотр электроинструмента','Журнал учёта и осмотра огнетушителей','Ознакомление с проектами производства работ / технологическими картами','Приказы о назначении ответственных лиц','Журнал учёта и осмотра СГЗП и тары','Вахтенный журнал','Журнал учёта приёма-сдачи ключ-марки'
+    ]},
+    { num:2, title:'Персонал', section:'Персонал', questions:[
+        'Признаки алкогольного, наркотического или токсического опьянения у сотрудников','Сотрудники обеспечены и применяют СИЗ в полном объёме','Плохое самочувствие, недомогание, признаки заболеваний у сотрудников','Наличие обучений и актуальных удостоверений по всем видам работ'
+    ]},
+    { num:3, title:'Рабочее место', section:'Рабочее место', questions:[
+        'Проезды, проходы и рабочие места в чистоте, не загромождены, ширина ≥0,8 м, высота ≥1,8 м','Освещение достаточно, исправны светильники','Отсутствует скопление сгораемого материала, не загромождены проходы к ПК','Имеются и исправны ручные пожарные извещатели и первичные средства пожаротушения','Колодцы и приямки закрыты/ограждены, целы переходные площадки и ступени','Рабочие места на высоте ограждены, имеются знаки безопасности','Имеются таблица масс грузов и схемы строповки, нет работников в зоне крана','Наличие таблички с актуальными датами ЧТО и ПТО','Имеются и применяются тросовые страховочные приспособления, анкерные точки','СГЗП исправны, есть маркировка, нет превышения норм браковки','Отсутствуют незакреплённые кабели/шланги в зоне прохода','Имеется и укомплектована производственная аптечка','На рабочем месте отсутствуют посторонние лица и работники без допуска','Обеспечена проветриваемость рабочих мест','Место огневых работ освобождено от горючих и ЛВЖ материалов (радиус 5 м)','Сварочные кабели, клещи, шланги, горелки, редукторы исправны','Обеспечено хранение и складирование баллонов в отведённых местах','Состояние баллонов: нет утечек, актуальные сроки освидетельствования','Электрошкафы соответствуют ПТТЭП и закрыты на замки','Имеются надписи на электрорубильниках, токоведущие части изолированы','Обеспечено устойчивое складирование в отведённых местах','Наличие обозначения грузоподъёмности на полках стеллажей','Электробытовые приборы и офисная техника в рабочем состоянии, исправны провода, вилки электрические, кабеля'
+    ]},
+    { num:4, title:'Оборудование', section:'Оборудование', questions:[
+        'Вывешены инструкции о порядке пуска и остановки оборудования, исправны средства экстренного торможения','На оборудовании имеются ограждающие устройства, блокировки, сигнализация','Режущий инструмент, круги, диски осмотрены, надёжно закреплены, есть защитные кожухи','Кнопки пуска/остановки, аварийной остановки, блокировки работоспособны','Ручной инструмент, инвентарь, оснастка, лестницы, стремянки исправны и промаркированы','Наличие и целостность заземления оборудования, наличие и исправность УЗО','Изоляция кабелей исправна, отсутствуют скрутки, исправны розетки и выключатели','На электроинструментах имеются инвентарные номера, соблюдены сроки осмотра'
+    ]}
+];
+
+function initStartForm(){
+    const sel = $('startSite');
+    const allowed = getUserSites();
+    sel.innerHTML = '<option value="">Выберите</option>';
+    Object.keys(SITES).filter(k=>allowed.includes(k)).forEach(k=>{
+        const o = document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o);
+    });
+    $('startDate').value = TODAY.toISOString().slice(0,10);
+    $('startBy').value = currentUser ? currentUser.fio : '';
+    if(allowed.length === 1){ sel.value = allowed[0]; onStartSiteChange(); }
+}
+
+function onStartSiteChange(){
+    const site = $('startSite').value;
+    const d = $('startDept');
+    d.innerHTML = '<option value="">Выберите</option>';
+    if(!site) return;
+    SITES[site].depts.forEach(x=>{ const o=document.createElement('option'); o.value=x; o.textContent=x; d.appendChild(o); });
+    if(currentUser && currentUser.dept_access){
+        const opt = [...d.options].find(o=>o.value===currentUser.dept_access);
+        if(opt) d.value = currentUser.dept_access;
+    }
+}
+
+function beginChecklist(){
+    const site = $('startSite').value;
+    const dept = $('startDept').value;
+    const object = $('startObject').value.trim();
+    if(!site || !dept || !object){ toast('Выберите площадку, подразделение и укажите участок/объект', 'warning'); return; }
+    const now = new Date();
+    currentCheckData = {
+        site, dept, object,
+        date: $('startDate').value,
+        time: formatTime(now),
+        master: $('startBy').value
+    };
+    $('startCheckForm').style.display='none';
+    $('activeCheckContainer').style.display='block';
+    $('activeCheckTitle').textContent = `Проверка: ${site} / ${dept} / ${object}`;
+    $('activeCheckSubtitle').textContent = `Дата: ${formatDate(currentCheckData.date)} в ${currentCheckData.time} · Мастер: ${currentCheckData.master}`;
+    initL1();
+    renderChecklist();
+}
+
+function confirmCancelCheck(){
+    askConfirm('Отменить текущую проверку? Введённые данные не сохранятся.', ()=>{
+        $('activeCheckContainer').style.display='none';
+        $('startCheckForm').style.display='block';
+    });
+}
+
+function initL1(){
+    l1State = {}; currentCustomQuestions = {};
+    L1_CHECKLIST.forEach((s,si)=>{ 
+        s.questions.forEach((q,qi)=>{ l1State[`l1s${si}q${qi}`] = {status:'ok', checked:false}; }); 
+    });
+}
+
+function renderChecklist(){
+    const toc = $('l1Toc'), c = $('l1Sections');
+    toc.innerHTML=''; c.innerHTML='';
+    L1_CHECKLIST.forEach((s,si)=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${s.num}. ${s.title.slice(0,30)}${s.title.length>30?'…':''}</span><span class="toc-count">${s.questions.length}</span>`;
+        li.onclick = ()=>{
+            document.querySelectorAll('#l1Toc li').forEach(x=>x.classList.remove('active'));
+            li.classList.add('active');
+            const t = $('l1-block-'+si);
+            if(t){ t.scrollIntoView({behavior:'smooth',block:'start'}); t.classList.remove('closed'); }
+        };
+        toc.appendChild(li);
+
+        const se = document.createElement('div'); se.className='checklist-section'; se.id='l1-block-'+si;
+
+        let qh = '';
+        s.questions.forEach((q,qi)=>{
+            const key = `l1s${si}q${qi}`;
+            qh += `<div class="checklist-question" id="q-${key}"><div class="question-row"><div class="question-num">${qi+1}.</div><div class="question-text">${escapeHtml(q)}</div><div class="question-actions"><button class="answer-btn" data-key="${key}" data-answer="ok" onclick="setL1Answer('${key}','ok')">Не выявлено</button><button class="answer-btn" data-key="${key}" data-answer="violation" onclick="setL1Answer('${key}','violation')">Выявлено</button><button class="answer-btn" data-key="${key}" data-answer="na" onclick="setL1Answer('${key}','na')">Не актуально</button></div></div><div class="violation-form" id="vf-${key}" style="display:none"><div class="violation-form-title"><i class="fa-solid fa-triangle-exclamation"></i> Форма нарушения</div><div class="form-group"><label class="form-label">Формулировка нарушения <span class="req">*</span></label><textarea class="form-textarea" id="txt-${key}"></textarea></div><div class="form-row"><div class="form-group"><label class="form-label">Ответственный за устранение <span class="req">*</span></label><select class="form-select" id="resp-${key}">${userOptionsHtml()}</select></div><div class="form-group"><label class="form-label">Срок устранения <span class="req">*</span></label><input type="date" class="form-input" id="due-${key}"></div></div><div class="form-group"><label class="form-label">Фото нарушения</label><label class="file-upload"><i class="fa-solid fa-camera"></i><span>Прикрепить</span><input type="file" accept="image/*" id="photo-${key}" onchange="showPhotoName('${key}')"></label><span id="photoname-${key}" style="font-size:10px;color:var(--text-muted)"></span></div></div></div>`;
+        });
+
+        if(currentCustomQuestions[si]){
+            currentCustomQuestions[si].forEach((item,idx)=>{
+                const key = `custom_s${si}_${idx}`;
+                const num = s.questions.length + idx + 1;
+                qh += `<div class="checklist-question" id="q-${key}"><div class="question-row"><div class="question-num">${num}.</div><div class="question-text">Другое</div><div class="question-actions"><button class="answer-btn" data-key="${key}" data-answer="ok" onclick="setL1Answer('${key}','ok')">Не выявлено</button><button class="answer-btn" data-key="${key}" data-answer="violation" onclick="setL1Answer('${key}','violation')">Выявлено</button><button class="answer-btn" data-key="${key}" data-answer="na" onclick="setL1Answer('${key}','na')">Не актуально</button></div></div><div class="violation-form" id="vf-${key}" style="display:none"><div class="violation-form-title"><i class="fa-solid fa-triangle-exclamation"></i> Форма нарушения</div><div class="form-group"><label class="form-label">Формулировка нарушения <span class="req">*</span></label><textarea class="form-textarea" id="txt-${key}"></textarea></div><div class="form-row"><div class="form-group"><label class="form-label">Ответственный за устранение <span class="req">*</span></label><select class="form-select" id="resp-${key}">${userOptionsHtml()}</select></div><div class="form-group"><label class="form-label">Срок устранения <span class="req">*</span></label><input type="date" class="form-input" id="due-${key}"></div></div><div class="form-group"><label class="form-label">Фото нарушения</label><label class="file-upload"><i class="fa-solid fa-camera"></i><span>Прикрепить</span><input type="file" accept="image/*" id="photo-${key}" onchange="showPhotoName('${key}')"></label><span id="photoname-${key}" style="font-size:10px;color:var(--text-muted)"></span></div></div></div>`;
+            });
+        }
+
+        const header = `<div class="checklist-section-header" onclick="toggleL1Section(${si})"><div class="checklist-section-title"><span class="section-num">${s.num}</span>${s.title}</div><div class="checklist-section-meta"><span class="badge badge-neutral">${s.questions.length}</span><i class="fa-solid fa-chevron-down checklist-section-arrow"></i></div></div>`;
+        const footer = `<div style="padding: 10px 0;"><button class="add-other-btn" onclick="addCustomQuestion(${si})"><i class="fa-solid fa-plus"></i> Добавить Другое</button></div>`;
+        se.innerHTML = `${header}<div class="checklist-questions">${qh}${footer}</div>`;
+        c.appendChild(se);
+    });
+    updateL1Progress();
+}
+
+function addCustomQuestion(si){
+    if(!currentCustomQuestions[si]) currentCustomQuestions[si] = [];
+    const idx = currentCustomQuestions[si].length;
+    currentCustomQuestions[si].push({ text:'Другое' });
+    const key = `custom_s${si}_${idx}`;
+    l1State[key] = {status:'ok', checked:false};
+    
+    const sectionContainer = document.querySelector(`#l1-block-${si} .checklist-questions`);
+    const footerBtn = sectionContainer.querySelector('.add-other-btn').parentElement;
+    
+    const num = L1_CHECKLIST[si].questions.length + idx + 1;
+    const newHtml = `<div class="checklist-question" id="q-${key}"><div class="question-row"><div class="question-num">${num}.</div><div class="question-text">Другое</div><div class="question-actions"><button class="answer-btn" data-key="${key}" data-answer="ok" onclick="setL1Answer('${key}','ok')">Не выявлено</button><button class="answer-btn" data-key="${key}" data-answer="violation" onclick="setL1Answer('${key}','violation')">Выявлено</button><button class="answer-btn" data-key="${key}" data-answer="na" onclick="setL1Answer('${key}','na')">Не актуально</button></div></div><div class="violation-form" id="vf-${key}" style="display:none"><div class="violation-form-title"><i class="fa-solid fa-triangle-exclamation"></i> Форма нарушения</div><div class="form-group"><label class="form-label">Формулировка нарушения <span class="req">*</span></label><textarea class="form-textarea" id="txt-${key}"></textarea></div><div class="form-row"><div class="form-group"><label class="form-label">Ответственный за устранение <span class="req">*</span></label><select class="form-select" id="resp-${key}">${userOptionsHtml()}</select></div><div class="form-group"><label class="form-label">Срок устранения <span class="req">*</span></label><input type="date" class="form-input" id="due-${key}"></div></div><div class="form-group"><label class="form-label">Фото нарушения</label><label class="file-upload"><i class="fa-solid fa-camera"></i><span>Прикрепить</span><input type="file" accept="image/*" id="photo-${key}" onchange="showPhotoName('${key}')"></label><span id="photoname-${key}" style="font-size:10px;color:var(--text-muted)"></span></div></div></div>`;
+    
+    footerBtn.insertAdjacentHTML('beforebegin', newHtml);
+    updateL1Progress();
+}
+
+function toggleL1Section(si){ $('l1-block-'+si).classList.toggle('closed'); }
+
+function setL1Answer(key, ans){
+    if(!l1State[key]) l1State[key] = {status:'ok', checked:false};
+    l1State[key].status = ans; l1State[key].checked = true;
+    const q = $('q-'+key), vf = $('vf-'+key);
+    if(!q || !vf) return;
+    q.querySelectorAll('.answer-btn').forEach(b=>b.classList.remove('active-ok','active-violation','active-na'));
+    const btn = q.querySelector(`.answer-btn[data-answer="${ans}"]`);
+    q.classList.remove('has-violation','no-violation','not-applicable');
+    if(ans==='ok'){ btn.classList.add('active-ok'); vf.style.display='none'; q.classList.add('no-violation'); }
+    else if(ans==='violation'){ btn.classList.add('active-violation'); vf.style.display='flex'; q.classList.add('has-violation'); }
+    else { btn.classList.add('active-na'); vf.style.display='none'; q.classList.add('not-applicable'); }
+    updateL1Progress();
+}
+
+function showPhotoName(key){ const i = $('photo-'+key); if(i.files.length) $('photoname-'+key).innerText = '✓ ' + i.files[0].name; }
+
+function updateL1Progress(){
+    const total = Object.keys(l1State).length;
+    const checked = Object.values(l1State).filter(v=>v.checked).length;
+    const violated = Object.values(l1State).filter(v=>v.status==='violation').length;
+    const na = Object.values(l1State).filter(v=>v.status==='na').length;
+    const pct = total>0 ? Math.round(checked/total*100) : 0;
+    $('l1ProgressFill').style.width = pct + '%';
+    $('l1ProgressText').innerText = `${checked} из ${total} (${pct}%)`;
+    $('l1Stats').innerHTML = `Проверено: <strong>${checked}</strong> · Нарушений: <strong style="color:var(--danger)">${violated}</strong> · Не актуально: <strong style="color:#64748b">${na}</strong>`;
+}
+
+async function saveL1(){
+    const found = [];
+    let incomplete = null;
+    L1_CHECKLIST.forEach((s,si)=>{
+        s.questions.forEach((q,qi)=>{
+            const key = `l1s${si}q${qi}`;
+            if(l1State[key] && l1State[key].status==='violation'){
+                const txt = $('txt-'+key).value.trim();
+                const resp = $('resp-'+key).value;
+                const due = $('due-'+key).value;
+                if(!txt || !resp || !due){ incomplete = `Раздел ${s.num}, вопрос ${qi+1}: заполните формулировку, выберите ответственного и укажите срок`; return; }
+                found.push({ desc:txt, site:currentCheckData.site, dept:currentCheckData.dept, object:currentCheckData.object, section:s.section, responsible:resp, due, file: $('photo-'+key).files[0] });
+            }
+        });
+        if(currentCustomQuestions[si]){
+            currentCustomQuestions[si].forEach((item,idx)=>{
+                const key = `custom_s${si}_${idx}`;
+                if(l1State[key] && l1State[key].status==='violation'){
+                    const txt = $('txt-'+key).value.trim();
+                    const resp = $('resp-'+key).value;
+                    const due = $('due-'+key).value;
+                    if(!txt || !resp || !due){ incomplete = `Раздел ${s.num}, «Другое» ${idx+1}: заполните формулировку, выберите ответственного и укажите срок`; return; }
+                    found.push({ desc:txt, site:currentCheckData.site, dept:currentCheckData.dept, object:currentCheckData.object, section:s.section, responsible:resp, due, file: $('photo-'+key).files[0] });
+                }
+            });
+        }
+    });
+    if(incomplete){ toast(incomplete, 'error'); return; }
+
+    const saveBtn = $('saveL1Btn');
+    saveBtn.disabled = true;
+    try {
+        await fetch('/api/checks', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                date: currentCheckData.date,
+                time: currentCheckData.time,
+                site: currentCheckData.site,
+                dept: currentCheckData.dept,
+                object_name: currentCheckData.object,
+                master: currentCheckData.master,
+                note: `Проверка: нарушений ${found.length}`
+            })
+        });
+        for(const f of found){
+            let photoBase64 = null;
+            if(f.file) {
+                try {
+                    photoBase64 = await compressImageToBase64(f.file);
+                } catch(e) {
+                    console.error('Ошибка сжатия фото нарушения', e);
+                }
+            }
+
+            await fetch('/api/violations', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    desc: f.desc, site: f.site, dept: f.dept, object_name: f.object,
+                    section: f.section, responsible: f.responsible, due: f.due,
+                    checkDate: currentCheckData.date, masterName: currentCheckData.master,
+                    photo_url: photoBase64                
+                })
+            });
+        }
+        await loadDataFromServer();
+        toast(`Проверка сохранена. Нарушений: ${found.length}`, 'success');
+        switchTab('l1registry', document.querySelector('.nav-item[data-perm="l1registry"] .nav-link'));
+        switchRegistryTab('violations');
+    } catch(e){
+        console.error(e);
+        toast('Ошибка при сохранении на сервер', 'error');
+    } finally {
+        saveBtn.disabled = false;
+    }
+}
+
+function getDueStatus(v){
+    if(v.status==='closed') return {row:'row-closed', icon:'🟢', label:'Устранено', overdueDays:null};
+    const diff = daysBetween(new Date(v.due), TODAY);
+    if(diff<0) return {row:'row-overdue', icon:'🔴', label:`Просрочено на ${-diff} дн.`, overdueDays:-diff};
+    if(diff===0) return {row:'row-today', icon:'🟠', label:'Истекает сегодня', overdueDays:0};
+    if(diff<=3) return {row:'row-soon', icon:'🟡', label:`Через ${diff} дн.`, overdueDays:null};
+    return {row:'', icon:'⚪', label:`Через ${diff} дн.`, overdueDays:null};
+}
+function renderOverdueCell(v){
+    if(v.status==='closed') return '<span style="color:var(--success);font-size:12px;">—</span>';
+    const ds = getDueStatus(v);
+    if(ds.overdueDays===null || ds.overdueDays===0){
+        if(ds.row==='row-today') return '<span style="color:var(--warning);font-weight:600;font-size:12px;">сегодня</span>';
+        return '<span style="color:var(--text-muted);font-size:12px;">—</span>';
+    }
+    return `<span style="color:var(--danger);font-weight:600;font-size:12px;">+${ds.overdueDays} дн.</span>`;
+}
+
+function visibleViolations(){
+    const sites = getUserSites();
+    return L1_VIOLATIONS.filter(v=>sites.includes(v.site));
+}
+function visibleChecks(){
+    const sites = getUserSites();
+    return L1_CHECKS.filter(c=>sites.includes(c.site));
+}
+
+function getCanonicalFio(rawFio) {
+    if(!rawFio || rawFio === '—' || rawFio === 'Не указано') return rawFio;
+    const surname = rawFio.trim().split(/\s+/)[0];
+    const found = USERS_LIST.find(u => u.fio && u.fio.startsWith(surname));
+    return found ? found.fio : rawFio;
+}
+
+function initL1RegFilters(){
+    const fs = $('l1RegFilterSite');
+    fs.innerHTML = '<option value="">Все площадки</option>';
+    getUserSites().forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=k; fs.appendChild(o); });
+}
+
+function renderL1Registry(){
+    initL1RegFilters();
+    const pool = visibleViolations();
+    const total = pool.length;
+    const open = pool.filter(v=>v.status==='open').length;
+    const overdue = pool.filter(v=>v.status!=='closed' && new Date(v.due)<TODAY).length;
+    const closed = pool.filter(v=>v.status==='closed').length;
+
+    $('l1RegKpi').innerHTML = `
+        <div class="kpi-card"><div class="kpi-label">Всего нарушений</div><div class="kpi-value">${total}</div><div class="kpi-sub">выявлено на 1 ступени</div></div>
+        <div class="kpi-card warning"><div class="kpi-label">Не устранено</div><div class="kpi-value">${open}</div><div class="kpi-sub">в работе</div></div>
+        <div class="kpi-card danger"><div class="kpi-label">Просрочено</div><div class="kpi-value">${overdue}</div><div class="kpi-sub">срок истёк</div></div>
+        <div class="kpi-card success"><div class="kpi-label">Устранено</div><div class="kpi-value">${closed}</div><div class="kpi-sub">${total?Math.round(closed/total*100):0}% от всех</div></div>`;
+
+    const search = ($('l1RegSearch').value||'').toLowerCase();
+    const fs = $('l1RegFilterSite').value;
+    const fd = $('l1RegFilterDept').value;
+    const fst = $('l1RegFilterStatus').value;
+
+    const dSel = $('l1RegFilterDept');
+    const curD = dSel.value;
+    dSel.innerHTML = '<option value="">Все подразделения</option>';
+    const deptSet = new Set();
+    pool.forEach(v=>{ if(!fs || v.site===fs) deptSet.add(v.dept); });
+    [...deptSet].sort().forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; dSel.appendChild(o); });
+    if([...dSel.options].some(o=>o.value===curD)) dSel.value = curD;
+
+    const filtered = pool.filter(v=>{
+        if(fs && v.site!==fs) return false;
+        if(fd && v.dept!==fd) return false;
+        if(search){ const h = (v.desc+' '+v.responsible+' '+v.dept).toLowerCase(); if(!h.includes(search)) return false; }
+        if(fst){
+            const isOver = v.status!=='closed' && new Date(v.due)<TODAY;
+            if(fst==='closed' && v.status!=='closed') return false;
+            if(fst==='open' && v.status!=='open') return false;
+            if(fst==='overdue' && !isOver) return false;
+        }
+        return true;
+    }).sort((a,b)=>new Date(b.checkDate)-new Date(a.checkDate));
+
+    const tbody = $('l1RegBody'); tbody.innerHTML = '';
+    if(!filtered.length){
+        $('l1RegTable').style.display = 'none';
+        $('l1RegEmpty').style.display = 'block';
+        $('l1RegEmpty').textContent = pool.length ? 'По выбранным фильтрам ничего не найдено' : 'Пока нет выявленных нарушений.';
+        return;
+    }
+    $('l1RegTable').style.display = 'table';
+    $('l1RegEmpty').style.display = 'none';
+
+    filtered.forEach(v=>{
+        const ds = getDueStatus(v);
+        const tr = document.createElement('tr');
+        if(ds.row) tr.classList.add(ds.row);
+        
+        const canonicalMaster = getCanonicalFio(v.masterName);
+        const masterShort = shortFio(canonicalMaster);
+
+        const canonicalResp = getCanonicalFio(v.responsible);
+        const respShort = shortFio(canonicalResp);
+
+        const isBase64 = v.photo_url && v.photo_url.startsWith('data:image');
+        const photoLink = isBase64 ? `<a href="#" onclick="openPhotoModal('${v.photo_url}'); return false;" style="color:var(--accent);text-decoration:underline;">Посмотреть</a>` : '<span style="color:var(--text-muted);">—</span>';
+
+        let statusHtml;
+        if(v.status==='closed') statusHtml = `<span class="badge badge-success">Устранено</span>`;
+        else statusHtml = `<select class="registry-select" style="padding:4px 8px;font-size:12px;min-width:120px;border-color:#fecaca;color:#ef4444;" onchange="changeStatusInline(${v.id}, this)"><option value="open" selected>Не устранено</option><option value="closed">Устранено</option></select>`;
+        
+        const isResolveBase64 = v.resolvePhoto && v.resolvePhoto.startsWith('data:image');
+        const resolvePhotoLink = isResolveBase64 ? `<a href="#" onclick="openPhotoModal('${v.resolvePhoto}'); return false;" style="color:var(--accent);text-decoration:underline;">Посмотреть</a>` : '<span style="color:var(--text-muted);">—</span>';
+        
+        const resolveCommentText = v.resolveComment || '<span style="color:var(--text-muted);">—</span>';
+        
+        tr.innerHTML = `<td class="id-cell">${escapeHtml(masterShort)}</td><td class="date-cell">${formatDate(v.checkDate)}</td><td><span class="badge badge-info">${escapeHtml(v.site)}</span></td><td>${escapeHtml(v.dept)}</td><td>${escapeHtml(v.objectName)}</td><td>${escapeHtml(v.section)}</td><td class="desc-cell">${escapeHtml(v.desc)}</td><td>${photoLink}</td><td>${escapeHtml(respShort)}</td><td class="date-cell">${ds.icon} ${formatDate(v.due)}</td><td>${renderOverdueCell(v)}</td><td>${statusHtml}</td><td>${resolvePhotoLink}</td><td style="font-size:12px;color:var(--text-muted);">${resolveCommentText}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function changeStatusInline(id, sel){
+    if(sel.value==='closed'){
+        currentResolveId = id;
+        $('resolvePhoto').value='';
+        $('resolvePhotoName').innerText='';
+        $('resolveComment').value='';
+        $('resolveModal').classList.add('open');
+    }
+}
+function showResolvePhotoName(){ const i=$('resolvePhoto'); if(i.files.length) $('resolvePhotoName').innerText = '✓ ' + i.files[0].name; }
+function closeResolveModal(){ $('resolveModal').classList.remove('open'); renderL1Registry(); }
+
+async function confirmResolve(){
+    if(!currentResolveId) return;
+    const comment = $('resolveComment').value.trim();
+    
+    closeResolveModal();
+    const idToResolve = currentResolveId;
+    currentResolveId = null;
+
+    const file = $('resolvePhoto').files[0];
+    let photoBase64 = null;
+
+    if(file) {
+        try {
+            photoBase64 = await compressImageToBase64(file);
+        } catch(e) {
+            console.error('Ошибка сжатия фото', e);
+            toast('Ошибка прикрепления фото', 'error');
+            return;
+        }
+    }
+
+    try {
+        await fetch('/api/violations/' + idToResolve + '/close', {
+            method:'PUT', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ resolveComment: comment, resolvePhoto: photoBase64 })
+        });
+        await loadDataFromServer();
+        toast('Нарушение отмечено устранённым', 'success');
+    } catch(e){
+        console.error(e);
+        toast('Ошибка при обновлении', 'error');
+    }
+}
+
+function compressImageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 600;
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', 0.5));
+            };
+            img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+    });
+}
+
+function openPhotoModal(url) {
+    if(!url) return;
+    $('photoModalImg').src = url;
+    $('photoModal').classList.add('open');
+}
+function closePhotoModal() {
+    $('photoModalImg').src = '';
+    $('photoModal').classList.remove('open');
+}
+
+function renderChecksRegistry(){
+    const tbody = $('l1ChecksBody'); const empty = $('l1ChecksEmpty');
+    tbody.innerHTML = '';
+    const pool = visibleChecks().sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if(!pool.length){ empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    pool.forEach(c=>{
+        const tr = document.createElement('tr');
+        const canonicalMaster = getCanonicalFio(c.master);
+        const masterShort = shortFio(canonicalMaster);
+
+        tr.innerHTML = `<td class="date-cell">${formatDate(c.date)}</td><td class="date-cell">${c.time||'—'}</td><td><span class="badge badge-info">${escapeHtml(c.site)}</span></td><td>${escapeHtml(c.dept)}</td><td>${escapeHtml(c.objectName)}</td><td>${escapeHtml(masterShort)}</td><td style="color:var(--text-muted);font-size:12px;">${escapeHtml(c.note||'—')}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function initAnalyticsTabs(){
+    const tabs = $('analyticsSiteTabs');
+    const allowed = getUserSites();
+    const list = allowed.length > 1 ? ['all', ...allowed] : allowed;
+    
+    if(tabs.innerHTML.trim() && tabs.dataset.sites === list.join(',')) { 
+        renderAnalytics(currentAnalyticsSite); 
+        return; 
+    }
+    tabs.dataset.sites = list.join(',');
+    tabs.innerHTML = '';
+    list.forEach(s=>{
+        const b = document.createElement('button');
+        b.className = 'inner-tab' + (currentAnalyticsSite===s?' active':'');
+        b.textContent = s==='all' ? 'Все площадки' : s;
+        b.onclick = ()=>{ 
+            currentAnalyticsSite = s; 
+            document.querySelectorAll('#analyticsSiteTabs .inner-tab').forEach(btn=>btn.classList.remove('active'));
+            b.classList.add('active');
+            renderAnalytics(s); 
+        };
+        tabs.appendChild(b);
+    });
+    if(!list.includes(currentAnalyticsSite)) currentAnalyticsSite = list[0] || 'all';
+    renderAnalytics(currentAnalyticsSite);
+}
+
+function renderAnalytics(site){
+    const container = $('analyticsContent');
+    container.innerHTML = '';
+    let fV = visibleViolations();
+    let fC = visibleChecks();
+    if(site !== 'all'){ fV = fV.filter(v=>v.site===site); fC = fC.filter(c=>c.site===site); }
+
+    const total = fV.length;
+    const open = fV.filter(v=>v.status==='open').length;
+    const overdue = fV.filter(v=>v.status!=='closed' && new Date(v.due)<TODAY).length;
+    const closed = fV.filter(v=>v.status==='closed').length;
+
+    container.innerHTML += `<div class="svetofor-grid">
+        <div class="sveto-card c-green"><div class="sveto-label">🟢 Устранено</div><div class="sveto-value">${closed}</div><div class="sveto-hint">${total?Math.round(closed/total*100):0}% от всех</div></div>
+        <div class="sveto-card c-yellow"><div class="sveto-label">🟡 Не устранено</div><div class="sveto-value">${open}</div><div class="sveto-hint">в работе</div></div>
+        <div class="sveto-card c-red"><div class="sveto-label">🔴 Просрочено</div><div class="sveto-value">${overdue}</div><div class="sveto-hint">срок истёк</div></div>
+        <div class="sveto-card c-gray"><div class="sveto-label">📋 Проверок</div><div class="sveto-value">${fC.length}</div><div class="sveto-hint">проведено</div></div>
+    </div>`;
+
+    container.innerHTML += `<div class="charts-row">
+        <div class="chart-card"><div class="chart-title">Статистика по устранениям</div><div class="chart-container"><canvas id="statusDonut"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Структура нарушений по разделам</div><div class="chart-container"><canvas id="sectionBar"></canvas></div></div>
+    </div>`;
+
+    const year = TODAY.getFullYear();
+    const monthNames = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+    const monthCounts = new Array(12).fill(0);
+    fV.forEach(v=>{ const d=new Date(v.checkDate); if(d.getFullYear()===year) monthCounts[d.getMonth()]++; });
+
+    container.innerHTML += `<div class="charts-row"><div class="chart-card" style="grid-column: span 2;"><div class="chart-title">Динамика нарушений по месяцам (${year})</div><div class="chart-container"><canvas id="monthBar"></canvas></div></div></div>`;
+
+    const unresolvedResp = {};
+    fV.forEach(v=>{ if(v.status!=='closed') unresolvedResp[v.responsible] = (unresolvedResp[v.responsible]||0)+1; });
+    const topUnres = Object.keys(unresolvedResp).sort((a,b)=>unresolvedResp[b]-unresolvedResp[a]).slice(0,5);
+    let respHtml = `<div class="chart-card"><div class="chart-title">Топ-5 ответственных с неустранёнными нарушениями</div><div class="bar-chart">`;
+    if(!topUnres.length) respHtml += '<div style="color:var(--text-muted);">Нет неустранённых нарушений</div>';
+    else {
+        const maxV = Math.max(...topUnres.map(r=>unresolvedResp[r]));
+        topUnres.forEach(r=>{ 
+            const val=unresolvedResp[r]; 
+            const canonical = getCanonicalFio(r);
+            respHtml += `<div class="bar-row">
+                <div class="bar-row-head">
+                    <div class="bar-label">${escapeHtml(shortFio(canonical))}</div>
+                    <div class="bar-value">${val}</div>
+                </div>
+                <div class="bar-track"><div class="bar-fill blue" style="width:${val/maxV*100}%"></div></div>
+            </div>`; 
+        });
+    }
+    respHtml += `</div></div>`;
+
+    const overdueDepts = {};
+    fV.forEach(v=>{ if(v.status!=='closed' && new Date(v.due)<TODAY) overdueDepts[v.dept]=(overdueDepts[v.dept]||0)+1; });
+    const topOD = Object.keys(overdueDepts).sort((a,b)=>overdueDepts[b]-overdueDepts[a]).slice(0,5);
+    let odHtml = `<div class="chart-card"><div class="chart-title">Топ-5 подразделений по просрочкам</div><div class="table-responsive"><table class="registry-table" style="margin:0;padding:0;"><thead><tr><th>Подразделение</th><th>Просрочено</th></tr></thead><tbody>`;
+    if(!topOD.length) odHtml += `<tr><td colspan="2" style="text-align:center;color:var(--text-muted);">Нет просроченных нарушений</td></tr>`;
+    else topOD.forEach(d=>{ odHtml += `<tr><td>${escapeHtml(d)}</td><td><span class="badge badge-danger">${overdueDepts[d]}</span></td></tr>`; });
+    odHtml += `</tbody></table></div></div>`;
+
+    container.innerHTML += `<div class="charts-row" style="grid-template-columns:1fr 1fr;">${respHtml}${odHtml}</div>`;
+
+    setTimeout(()=>{
+        ['statusDonut','sectionBar','monthBar'].forEach(k=>{ if(analyticsCharts[k]){ analyticsCharts[k].destroy(); analyticsCharts[k]=null; } });
+        Chart.register(ChartDataLabels);
+        const ctxD = $('statusDonut');
+        if(ctxD) analyticsCharts.statusDonut = new Chart(ctxD, {
+            type:'doughnut',
+            data:{ labels:['Устранено','Не устранено','Просрочено'], datasets:[{ data:[closed,open,overdue], backgroundColor:['#10b981','#f59e0b','#ef4444'], borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{enabled:false}, legend:{position:'bottom',labels:{font:{size:14,family:'Inter'}}}, datalabels:{color:'white',font:{weight:'bold',size:16},formatter:v=>v>0?v:''} } }
+        });
+        const sections = ['Документация','Персонал','Рабочее место','Оборудование'];
+        const counts = sections.map(s=>fV.filter(v=>v.section===s).length);
+        const ctxS = $('sectionBar');
+        if(ctxS) analyticsCharts.sectionBar = new Chart(ctxS, {
+            type:'bar',
+            data:{ labels:sections, datasets:[{ label:'Количество', data:counts, backgroundColor:['#3b82f6','#8b5cf6','#f59e0b','#10b981'], borderRadius:8 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{enabled:false}, legend:{display:false}, datalabels:{anchor:'center',align:'center',color:'white',font:{weight:'bold',size:14},formatter:v=>v>0?v:''} }, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{ticks:{font:{size:12}}} } }
+        });
+        const ctxM = $('monthBar');
+        if(ctxM) analyticsCharts.monthBar = new Chart(ctxM, {
+            type:'bar',
+            data:{ labels:monthNames, datasets:[{ label:'Выявлено', data:monthCounts, backgroundColor:'#3b82f6', borderRadius:8 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ tooltip:{enabled:false}, legend:{display:false}, datalabels:{anchor:'center',align:'center',color:'white',font:{weight:'bold',size:14},formatter:v=>v>0?v:''} }, scales:{ y:{beginAtZero:true,ticks:{stepSize:1}}, x:{ticks:{font:{size:12}}} } }
+        });
+    }, 100);
+}
+
+function openNotifications(){
+    const list = $('notifList');
+    if(!NOTIFICATIONS.length){ list.innerHTML = '<div style="color:var(--text-muted);font-size:14px;">Уведомлений нет</div>'; }
+    else {
+        list.innerHTML = NOTIFICATIONS.map(n=>`
+            <div style="padding:12px;border:1px solid ${n.is_read?'var(--border)':'#bfdbfe'};background:${n.is_read?'#fff':'#eff6ff'};border-radius:10px;font-size:13px;line-height:1.5;">
+                <div style="font-weight:${n.is_read?'400':'600'};margin-bottom:4px;">${escapeHtml(n.message)}</div>
+                <div style="color:var(--text-muted);font-size:11px;">${formatDate(n.created_at)} ${formatTime(n.created_at)}</div>
+                ${!n.is_read?`<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="markNotifRead(${n.id})">Отметить прочитанным</button>`:''}
+            </div>
+        `).join('');
+    }
+    $('notifModal').classList.add('open');
+}
+function closeNotifModal(){ $('notifModal').classList.remove('open'); }
+async function markNotifRead(id){
+    try {
+        await fetch('/api/notifications/'+id+'/read', {method:'PUT'});
+        await loadNotifications();
+        openNotifications();
+    } catch(e){ console.error(e); }
+}
+
+const savedUser = sessionStorage.getItem('safety360_user');
+if(savedUser){
+    currentUser = JSON.parse(savedUser);
+    applyUser();
+    (async ()=>{
+        await loadUsers();
+        await loadDataFromServer();
+        await loadNotifications();
+    })();
+}
+</script>
+</body>
+</html>
